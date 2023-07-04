@@ -104,3 +104,32 @@ vector-01                  : ok=3    changed=0    unreachable=0    failed=0    s
 
 9. Подготовьте README.md-файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.  
 [playbook/README.md](https://github.com/kibernetiq/ansible_test/blob/main/playbook/README.md)  
+
+
+
+
+
+
+- 6. Попробуйте запустить playbook на этом окружении с флагом --check.
+```
+yura@Skynet playbook % ansible-playbook -i inventory/prod.yml site.yml --check -v
+
+...
+...
+
+TASK [Lighthouse | Install epel-release] **********************************************************************************************************
+skipping: [lighthouse-01] => {"changed": false, "cmd": ["sudo", "yum", "install", "epel-release", "&&", "sudo", "yum", "update", "-y"], "delta": null, "end": null, "msg": "Command would have run if not in check mode", "rc": 0, "start": null, "stderr": "", "stderr_lines": [], "stdout": "", "stdout_lines": []}
+
+TASK [Lighthouse | Install Nginx] *****************************************************************************************************************
+skipping: [lighthouse-01] => {"changed": false, "cmd": ["sudo", "yum", "install", "nginx"], "delta": null, "end": null, "msg": "Command would have run if not in check mode", "rc": 0, "start": null, "stderr": "", "stderr_lines": [], "stdout": "", "stdout_lines": []}
+
+TASK [Lighthouse | Start Nginx] *******************************************************************************************************************
+fatal: [lighthouse-01]: FAILED! => {"changed": false, "msg": "Could not find the requested service nginx: host"}
+
+PLAY RECAP ****************************************************************************************************************************************
+clickhouse-01              : ok=3    changed=0    unreachable=0    failed=0    skipped=1    rescued=1    ignored=0
+lighthouse-01              : ok=2    changed=1    unreachable=0    failed=1    skipped=2    rescued=0    ignored=0
+vector-01                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+

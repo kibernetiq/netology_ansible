@@ -50,7 +50,7 @@
   tasks:
     - name: Get Vector distrib
       ansible.builtin.get_url:
-        url: "https://packages.timber.io/vector/0.30.0/vector-{{ vector_version }}.x86_64.rpm"
+        url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"
         dest: "./vector-{{ vector_version }}.rpm"
         mode: 644
     - name: Install Vector packages
@@ -59,3 +59,47 @@
         name: ./vector-{{ vector_version }}.rpm
         disable_gpg_check: true
       notify: Start Vector service
+
+- name: Install lighthouse
+  hosts: lighthouse
+  handlers:
+    - name: Nginx reload
+      become: true
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+  pre_tasks:
+    - name: Lighthouse | Install git
+      become: true
+      ansible.builtin.yum:
+        name: git
+        state: present
+    - name: Lighthouse | Install epel-release
+      become: true
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+    - name: Lighthouse | Install Nginx
+      become: true
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+    - name: Lighthouse | Apply nginx config
+      become: true
+      ansible.builtin.template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/default.conf
+        mode: "01204"
+  tasks:
+    - name: Lighthouse | Clone repository
+      ansible.builtin.git:
+        repo: "{{ lighthouse_url }}"
+        dest: "{{ lighthouse_dir }}"
+        version: master
+    - name: Lighthouse | Apply config
+      become: true
+      ansible.builtin.template:
+        src: templates/lighthouse_nginx.conf.j2
+        dest: /etc/nginx/conf.d/lighthouse.conf
+        mode: "01204"
+      notify: Nginx reload

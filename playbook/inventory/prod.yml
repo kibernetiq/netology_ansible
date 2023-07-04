@@ -8,3 +8,8 @@ vector:
   hosts:
     vector-01:
       ansible_host: 158.160.14.88
+
+lighthouse:
+  hosts:
+    lighthouse-01:
+      ansible_host: 62.84.123.114
