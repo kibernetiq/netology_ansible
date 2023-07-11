@@ -1,105 +1,15 @@
 - name: Install Clickhouse
   hosts: clickhouse
-  handlers:
-    - name: Start clickhouse service
-      become: true
-      ansible.builtin.service:
-        name: clickhouse-server
-        state: restarted
-  tasks:
-    - name: Get clickhouse distrib
-      block:
-        - name: Download clickhouse packages
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
-            dest: "./{{ item }}-{{ clickhouse_version }}.rpm"
-            mode: "01204"
-          with_items: "{{ clickhouse_packages }}"
-      rescue:
-        - name: Download clickhouse-common-static packages
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
-            dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
-            mode: "01204"
-    - name: Install clickhouse packages
-      become: true
-      ansible.builtin.yum:
-        name:
-          - ./clickhouse-common-static-{{ clickhouse_version }}.rpm
-          - ./clickhouse-client-{{ clickhouse_version }}.rpm
-          - ./clickhouse-server-{{ clickhouse_version }}.rpm
-        disable_gpg_check: true
-      notify: Start clickhouse service
-    - name: Flush handlers
-      ansible.builtin.meta: flush_handlers
-    - name: Create database
-      ansible.builtin.command: "clickhouse-client -q 'create database logs;'"
-      register: create_db
-      failed_when: create_db.rc != 0 and create_db.rc != 82
-      changed_when: create_db.rc == 0
+  roles: 
+    - clickhouse
 
 - name: Install Vector
   hosts: vector
-  handlers:
-    - name: Start Vector service
-      become: true
-      ansible.builtin.service:
-        name: vector
-        state: restarted
-        enabled: true
-  tasks:
-    - name: Get Vector distrib
-      ansible.builtin.get_url:
-        url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"
-        dest: "./vector-{{ vector_version }}.rpm"
-        mode: "01204"
-    - name: Install Vector packages
-      become: true
-      ansible.builtin.yum:
-        name: ./vector-{{ vector_version }}.rpm
-        disable_gpg_check: true
-      notify: Start Vector service
+  roles:
+    - vector
 
 - name: Install lighthouse
   hosts: lighthouse
-  handlers:
-    - name: Nginx reload
-      become: true
-      ansible.builtin.service:
-        name: nginx
-        state: restarted
-  pre_tasks:
-    - name: Lighthouse | Install git
-      become: true
-      ansible.builtin.yum:
-        name: git
-        state: present
-    - name: Lighthouse | Install epel-release
-      become: true
-      ansible.builtin.yum:
-        name: epel-release
-        state: present
-    - name: Lighthouse | Install Nginx
-      become: true
-      ansible.builtin.yum:
-        name: nginx
-        state: present
-    - name: Lighthouse | Start nginx
-      become: true
-      ansible.builtin.service:
-        name: nginx
-        state: restarted
-        enabled: true
-  tasks:
-    - name: Lighthouse | Clone repository
-      ansible.builtin.git:
-        repo: "{{ lighthouse_url }}"
-        dest: "{{ lighthouse_dir }}"
-        version: master
-    - name: Lighthouse | Apply config
-      become: true
-      ansible.builtin.template:
-        src: templates/lighthouse.conf.j2
-        dest: "{{ lighthouse_nginx_dir }}"
-        mode: "01204"
-      notify: Nginx reload
+  roles: 
+    - nginx
+    - lighthouse

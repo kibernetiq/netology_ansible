@@ -1,6 +1,0 @@
----
-
-lighthouse_url: "https://github.com/VKCOM/lighthouse.git"
-lighthouse_dir: "/home/yura/lighthouse"
-lighthouse_nginx_user: "root"
-lighthouse_nginx_dir: "/etc/nginx/conf.d/lighthouse.conf"
